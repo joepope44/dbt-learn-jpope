@@ -1,23 +1,9 @@
-with orders as (
-
-    SELECT * FROM {{ ref('stg_orders') }}
-
-),
-
-payment as (
-    SELECT * FROM raw.stripe.payment
-),
-
-payments as (
-    SELECT 
-    order_id,
-    customer_id,
-    SUM(amount)::FLOAT/100::FLOAT as payment
-    FROM orders 
-    JOIN payment 
-    ON payment.orderid = orders.order_id
-    WHERE payment.STATUS = 'success'
-    GROUP BY order_id, customer_id
-)
-
-SELECT * FROM payments
+select
+    id as payment_id,
+    orderid as order_id,
+    paymentmethod as payment_method,
+    status,
+    -- amount is stored in cents, convert it to dollars
+    amount / 100 as amount,
+    created as created_at
+from raw.stripe.payment
